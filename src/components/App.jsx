@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid';
 import { ContactForm } from './ContactForm/ContactForm';
 import { Filter } from './Filter/Filter';
 import { ContactList } from './ContactList/ContactList';
-
+import Notiflix from 'notiflix';
 export class App extends Component {
   state = {
     contacts: [
@@ -15,29 +15,40 @@ export class App extends Component {
     filter: '',
   };
 
-  handleChange = e => {
-    const { name, value } = e.target;
-    this.setState({ [name]: value });
-  };
+  
 
-  handleSubmit = e => {
-    const id = nanoid();
-    const name = e.name;
-    const number = e.number;
-    const contactsLists = [...this.state.contacts];
+  handleSubmit = ({ name, number }) => {
+    const contact = {
+      id: nanoid(),
+      name,
+      number,
+    };
 
-    if (contactsLists.findIndex(contact => name === contact.name) !== -1) {
-      alert(`${name} is already in contacts.`);
-    } else {
-      contactsLists.push({ name, id, number });
+    const isIncludeName = this.state.contacts.some(
+      value => value.name.toLowerCase() === name.toLowerCase()
+    );
+    const isIncludeNumber = this.state.contacts.some(
+      value => value.number.split('-').join('') === number.split('-').join('')
+    );
+
+    if (isIncludeName) {
+     Notiflix.Report.warning(`${name} is already in contacts`);
+      return;
+    }
+    if (isIncludeNumber) {
+      Notiflix.Report.warning(`phonenumber${number} is already in contacts`);
+      
+      return;
     }
 
-    this.setState({ contacts: contactsLists });
+    this.setState(({ contacts }) => ({
+      contacts: [contact, ...contacts],
+    }));
   };
 
-  handleDelete = e => {
+  handleDelete = id => {
     this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== e),
+      contacts: prevState.contacts.filter(contact => contact.id !== id),
     }));
   };
 
